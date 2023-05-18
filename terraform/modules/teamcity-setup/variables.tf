@@ -6,15 +6,10 @@ variable "vpc_network" {
   type        = object(
     {
       primary_cidr_range   = string
-      secondary_cidr_range = string
+      secondary_cidr_range = optional(string, "")
       availability_zones   = optional(set(string), [])
     }
   )
-  default = {
-    primary_cidr_range   = ""
-    secondary_cidr_range = ""
-    availability_zones   = []
-  }
 }
 
 # EKS
@@ -158,4 +153,19 @@ variable "database_password" {
   type        = string
   default     = ""
   sensitive   = true
+}
+
+# Route 53
+# ------------------------------------------------------------------------------
+# Dummy switch for test purposes, should be removed in prod
+variable "create_dns_zone" {
+  description = "Whether to create DNS zone or not"
+  type        = bool
+  default     = false
+}
+
+variable "dns_zone_name" {
+  description = "DNS zone name where to put public TeamCity endpoint"
+  type        = string
+  default     = ""
 }

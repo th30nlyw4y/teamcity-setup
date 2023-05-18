@@ -143,17 +143,26 @@ resource "aws_iam_policy" "bucket_read_writer" {
       {
         Effect : "Allow",
         Principal : {
-          AWS : aws_iam_role.node.arn
+          AWS : aws_iam_role.node[0].arn
         },
         Action : [
           "s3:*" // Most likely permissions should be restricted
         ]
         Resource : [
-          "arn:aws:s3:::${aws_s3_bucket.artifacts}/*"
+          "arn:aws:s3:::${aws_s3_bucket.artifacts.bucket}/*"
         ]
       }
     ]
   })
 
   depends_on = [aws_iam_role.node, aws_s3_bucket.artifacts]
+}
+
+resource "aws_iam_role_policy_attachment" "aws_bucket_read_writer_attachment" {
+  count = local.create_node_iam_role ? 1 : 0
+
+  policy_arn = "arn:aws:iam::aws:policy/${aws_iam_policy.bucket_read_writer[0].name}"
+  role       = aws_iam_role.node[0].name
+
+  depends_on = [aws_iam_policy.bucket_read_writer, aws_iam_role.node]
 }
