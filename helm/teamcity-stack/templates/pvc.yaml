@@ -1,0 +1,15 @@
+{{- with $.Values.teamcity.pvc -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "tc.name" $ }}-pvc
+  labels:
+    {{- include "tc.metadata.labels" $ | indent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ default "50Gi" .size }}
+  storageClassName: {{ include "tc.name" $ }}-ssd
+{{- end }}

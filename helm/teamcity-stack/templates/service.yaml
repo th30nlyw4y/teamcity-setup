@@ -1,0 +1,16 @@
+{{- with $.Values.teamcity.service -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tc.name" $ }}-svc
+  labels:
+    {{- include "tc.metadata.labels" $ | indent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "tc.metadata.labels" $ | nindent 4 }}
+  ports:
+    - name: {{ include "tc.name" $ }}-svc-port
+      port: {{ default "80" .port }}
+      targetPort: {{ include "tc.name" $ }}-port
+{{- end }}

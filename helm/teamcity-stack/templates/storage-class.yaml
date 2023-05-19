@@ -1,0 +1,12 @@
+{{- with $.Values.teamcity.pvc -}}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: "{{ include "tc.name" $ }}-ssd"
+  labels:
+    {{- include "tc.metadata.labels" $ | indent 4 }}
+provisioner: {{ default "kubernetes.io/aws-ebs" .provisioner }}
+parameters:
+  type: {{ default "gp3" .type }}
+  fstype: ext4
+{{- end }}

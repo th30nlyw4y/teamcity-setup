@@ -1,0 +1,27 @@
+{{- with $.Values.teamcity.ingress -}}
+{{- if .enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "tc.name" $ }}-ingress
+  labels:
+    {{- include "tc.metadata.labels" $ | indent 4 }}
+  annotations: {{ toYaml .annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ default "alb" .class }}
+  tls:
+    - hosts:
+        - {{ required "Please provide TeamCity host" .host }}
+      secretName: {{ required "Please provide TLS secret name" .tlsSecretName }}
+  rules:
+    - host: {{ .host }}
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: {{ include "tc.name" $ }}-svc
+                port:
+                  name: {{ include "tc.name" $ }}-svc-port
+{{- end }}
+{{- end }}

@@ -1,0 +1,15 @@
+apiVersion: v2
+name: teamcity-server-stack
+description: Chart for setting up TeamCity with several additional components
+version: 0.1.1
+appVersion: 2022.10.3
+dependencies:
+  - repository: https://aws.github.io/eks-charts
+    name: aws-load-balancer-controller
+    version: 1.5.2
+  - repository: https://kubernetes-sigs.github.io/external-dns/
+    name: external-dns
+    version: 1.12.2
+  - repository: oci://public.ecr.aws/karpenter
+    name: karpenter
+    version: v0.27.3

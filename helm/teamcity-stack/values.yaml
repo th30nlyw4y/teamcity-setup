@@ -1,0 +1,54 @@
+# TeamCity server configuration
+teamcity:
+
+  # You may provide custom name, if needed
+  nameOverride: ""
+
+  image:
+    # Docker image for TC server (default jetbrains/teamcity-server)
+    name: ""
+    # Docker image tag (default latest)
+    tag: ""
+
+    # Secret name, which should be used to pull teamcity-server images
+    imagePullSecrets:
+      - name: ""
+
+  pvc:
+    # Storage provisioner (default kubernetes.io/aws-ebs)
+    provisioner: ""
+    # Persistent disk size (default 50 Gi)
+    size: ""
+    # Provisioned disk type (default gp3)
+    type: ""
+
+  service:
+    # Which port to expose by service (default 80)
+    port: ""
+
+  ingress:
+    # Whether to create ingress or not
+    enabled: true
+    # TC server public hostname
+    host: "example.com" # Must be set if enabled
+    # Ingress class name (default alb)
+    class: ""
+    # Name of in-cluster secret, containing TLS cert
+    tlsSecretName: "dummySecret"  # Must be set if enabled
+    # Various annotations (https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/)
+    annotations:
+      test1: 1
+      test2: 2
+
+# Override default AWS Load Balancer Controller settings if needed
+# https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/configurations
+aws-load-balancer-controller:
+  clusterName: "tc-eks-cluster"
+
+# Override default external DNS settings if needed
+# https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md
+#external-dns:
+
+# Override default Karpenter settings
+# https://karpenter.sh/v0.27.3/getting-started/getting-started-with-karpenter/
+#karpenter:

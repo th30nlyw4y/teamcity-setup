@@ -1,0 +1,37 @@
+{{- with $.Values.teamcity -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tc.name" $ }}
+  labels:
+    {{- include "tc.metadata.labels" $ | indent 4 }}
+spec:
+  replicas: 1 # WARN: increase with care
+  selector:
+    matchLabels:
+      {{- include "tc.metadata.labels" $ | indent 6 }}
+  template:
+    metadata:
+      name: {{ include "tc.name" $ }}
+      labels:
+        {{- include "tc.metadata.labels" $ | indent 8 }}
+    spec:
+      {{- if .image.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml .image.imagePullSecrets | nindent 6 }}
+      {{- end }}
+      containers:
+        - name: teamcity-server
+          image: "{{ default "jetbrains/teamcity-server" .image.name }}:{{default "latest" .image.tag }}"
+          ports:
+            - name: {{ include "tc.name" $ }}-port
+              containerPort: 80
+          volumeMounts:
+            - mountPath: "/storage"
+              name: persistent-storage
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: {{ include "tc.name" $ }}-ssd
+      nodeSelector:
+        kubernetes.io/component: server
+{{- end }}
