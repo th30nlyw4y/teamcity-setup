@@ -4,6 +4,15 @@ teamcity:
   # You may provide custom name, if needed
   nameOverride: ""
 
+  # Number of server replicas (Must not be increased in most cases) (default 1)
+  replicas: ""
+
+  resources:
+    # How much CPU resources does server need (default 2)
+    cpu: ""
+    # How much memory resources does server need (default 4Gi)
+    memory: ""
+
   image:
     # Docker image for TC server (default jetbrains/teamcity-server)
     name: ""
@@ -36,9 +45,7 @@ teamcity:
     # Name of in-cluster secret, containing TLS cert
     tlsSecretName: "dummySecret"  # Must be set if enabled
     # Various annotations (https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/)
-    annotations:
-      test1: 1
-      test2: 2
+    annotations: {}
 
 # Override default AWS Load Balancer Controller settings if needed
 # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/configurations

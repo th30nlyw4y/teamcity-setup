@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "tc.metadata.labels" $ | indent 4 }}
 spec:
-  replicas: 1 # WARN: increase with care
+  replicas: {{ default 1 .replicas }} # WARN: increase with care
   selector:
     matchLabels:
       {{- include "tc.metadata.labels" $ | indent 6 }}
@@ -22,12 +22,19 @@ spec:
       containers:
         - name: teamcity-server
           image: "{{ default "jetbrains/teamcity-server" .image.name }}:{{default "latest" .image.tag }}"
+          env:
+            - name: TEAMCITY_DATA_PATH
+              value: "/storage/teamcity_data"
           ports:
             - name: {{ include "tc.name" $ }}-port
               containerPort: 80
           volumeMounts:
             - mountPath: "/storage"
               name: persistent-storage
+          resources:
+            requests:
+              cpu: {{ default "2" ( .resources.cpu | quote ) }}
+              memory: {{ default "4Gi" ( .resources.memory | quote ) }}
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
