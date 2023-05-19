@@ -1,6 +1,9 @@
 # ------------------------------------------------------------------------------
 
-locals {}
+locals {
+  # If we've got VPC native networking disabled, use empty range
+  secondary_cidr_range = var.enable_vpc_native_networking ? [var.vpc_network.secondary_cidr_range] : []
+}
 
 # ------------------------------------------------------------------------------
 
@@ -14,10 +17,14 @@ resource "aws_eks_cluster" "this" {
       for k, v in merge(aws_subnet.public, aws_subnet.private) : v.id
     ]
   }
+
   # Requires VPC CNI plugin, disabled by default
-#  kubernetes_network_config {
-#    service_ipv4_cidr = var.vpc_network.secondary_cidr_range
-#  }
+  dynamic "kubernetes_network_config" {
+    for_each = local.secondary_cidr_range
+    content {
+      service_ipv4_cidr = kubernetes_network_config.value
+    }
+  }
 
   depends_on = [aws_subnet.public, aws_subnet.private]
 }
@@ -38,10 +45,12 @@ resource "aws_eks_node_group" "servers" {
   capacity_type  = var.server_capacity_type
   disk_size      = 100
   instance_types = var.server_machine_types
+  labels = {
+    "kubernetes.io/component" = "server"
+  }
 
   depends_on = [aws_eks_cluster.this]
 }
-
 
 # TC agents node group
 resource "aws_eks_node_group" "agents" {
@@ -59,6 +68,9 @@ resource "aws_eks_node_group" "agents" {
   capacity_type  = var.agents_capacity_type
   disk_size      = 100
   instance_types = var.agents_machine_types
+  labels = {
+    "kubernetes.io/component" = "agent"
+  }
 
   depends_on = [aws_eks_cluster.this]
 }
@@ -89,17 +101,19 @@ resource "aws_eks_addon" "coredns_eks_addon" {
 }
 
 # Disabled by default
-#resource "aws_eks_addon" "vpc_cni_eks_addon" {
-#  addon_name   = "vpc-cni"
-#  cluster_name = aws_eks_cluster.this.name
-#  lifecycle {
-#    replace_triggered_by = [
-#      aws_eks_cluster.this
-#    ]
-#  }
-#
-#  depends_on = [aws_eks_node_group.servers, aws_eks_node_group.agents]
-#}
+resource "aws_eks_addon" "vpc_cni_eks_addon" {
+  count = var.enable_vpc_native_networking ? 1 : 0
+
+  addon_name   = "vpc-cni"
+  cluster_name = aws_eks_cluster.this.name
+  lifecycle {
+    replace_triggered_by = [
+      aws_eks_cluster.this
+    ]
+  }
+
+  depends_on = [aws_eks_node_group.servers, aws_eks_node_group.agents]
+}
 
 resource "aws_eks_addon" "ebs_csi_eks_addon" {
   addon_name   = "aws-ebs-csi-driver"

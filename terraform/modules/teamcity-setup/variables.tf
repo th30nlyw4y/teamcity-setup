@@ -27,6 +27,12 @@ variable "cluster_version" {
   default     = ""
 }
 
+variable "enable_vpc_native_networking" {
+  description = "Whether to enable VPC native networking or not"
+  type        = bool
+  default     = false
+}
+
 variable "server_scaling_config" {
   description = "Scaling config setup for server node pool"
   type        = object({

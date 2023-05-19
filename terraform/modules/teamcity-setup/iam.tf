@@ -16,7 +16,7 @@ locals {
   node_role_default_policies = [
     "AmazonEBSCSIDriverPolicy",
     "AmazonEKSWorkerNodePolicy",
-    #    "AmazonEKS_CNI_Policy", disabled by default
+    "AmazonEKS_CNI_Policy",
     "AmazonEC2ContainerRegistryReadOnly"
   ]
 

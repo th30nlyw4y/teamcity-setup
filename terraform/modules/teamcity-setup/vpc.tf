@@ -4,8 +4,7 @@ locals {
   # List of availability zones, in which subnets should be created
   # Will use all zones by default
   availability_zones = length(var.vpc_network.availability_zones) > 0 ? [
-    for az in var.vpc_network.availability_zones :
-    "${data.aws_region.current.name}${az}"
+    for az in var.vpc_network.availability_zones : "${data.aws_region.current.name}${az}"
   ] : data.aws_availability_zones.current.names
 
   # Generate cidr blocks for public subnets
@@ -102,7 +101,7 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_route_table" "private" {
-  for_each = local.availability_zones
+  for_each = toset(local.availability_zones)
 
   vpc_id = aws_vpc.this.id
   route {
@@ -124,7 +123,7 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  for_each = local.availability_zones
+  for_each = toset(local.availability_zones)
 
   route_table_id = aws_route_table.private[each.value].id
   subnet_id      = aws_subnet.private[each.value].id
@@ -146,7 +145,7 @@ resource "aws_internet_gateway" "this" {
 
 # Required for each NAT gateway
 resource "aws_eip" "nat" {
-  for_each = local.availability_zones
+  for_each = toset(local.availability_zones)
 
   tags = {
     Name        = "nat-gw-${each.value}-eip"
@@ -156,7 +155,7 @@ resource "aws_eip" "nat" {
 
 # Required for outbound connections to the Internet from private subnets
 resource "aws_nat_gateway" "this" {
-  for_each = local.availability_zones
+  for_each = toset(local.availability_zones)
 
   subnet_id     = aws_subnet.public[each.value].id
   allocation_id = aws_eip.nat[each.value].id
