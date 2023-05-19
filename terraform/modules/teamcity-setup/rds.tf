@@ -39,4 +39,3 @@ resource "aws_db_instance" "this" {
     Description = "TeamCity RDS database instance"
   }
 }
-

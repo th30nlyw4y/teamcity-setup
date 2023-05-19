@@ -16,7 +16,7 @@ locals {
   node_role_default_policies = [
     "AmazonEBSCSIDriverPolicy",
     "AmazonEKSWorkerNodePolicy",
-    "AmazonEKS_CNI_Policy",
+    #    "AmazonEKS_CNI_Policy", disabled by default
     "AmazonEC2ContainerRegistryReadOnly"
   ]
 
@@ -100,20 +100,20 @@ resource "aws_iam_role_policy_attachment" "node" {
 # ------------------------------------------------------------------------------
 
 # Required for load balancer provisioning
-resource "aws_iam_policy" "aws_load_balancer_controller" {
+resource "aws_iam_policy" "aws_lbc" {
   count = local.create_node_iam_role ? 1 : 0
 
   name   = "AWSLoadBalancerControllerIAMPolicy"
   policy = file("${path.module}/files/aws-lb-controller-policy.json")
 }
 
-resource "aws_iam_role_policy_attachment" "aws_lbc_attachment" {
+resource "aws_iam_role_policy_attachment" "aws_lbc" {
   count = local.create_node_iam_role ? 1 : 0
 
-  policy_arn = "arn:aws:iam::aws:policy/${aws_iam_policy.aws_load_balancer_controller[0].name}"
+  policy_arn = "arn:aws:iam::aws:policy/${aws_iam_policy.aws_lbc[0].name}"
   role       = aws_iam_role.node[0].name
 
-  depends_on = [aws_iam_policy.aws_load_balancer_controller, aws_iam_role.node]
+  depends_on = [aws_iam_policy.aws_lbc, aws_iam_role.node]
 }
 
 # Required for cluster autoscaler controller
@@ -124,7 +124,7 @@ resource "aws_iam_policy" "cluster_autoscaler" {
   policy = file("${path.module}/files/cluster-autoscaler-policy.json")
 }
 
-resource "aws_iam_role_policy_attachment" "aws_cluster_autoscaler_attachment" {
+resource "aws_iam_role_policy_attachment" "cluster_autoscaler" {
   count = local.create_node_iam_role ? 1 : 0
 
   policy_arn = "arn:aws:iam::aws:policy/${aws_iam_policy.cluster_autoscaler[0].name}"
@@ -158,11 +158,51 @@ resource "aws_iam_policy" "bucket_read_writer" {
   depends_on = [aws_iam_role.node, aws_s3_bucket.artifacts]
 }
 
-resource "aws_iam_role_policy_attachment" "aws_bucket_read_writer_attachment" {
+resource "aws_iam_role_policy_attachment" "aws_bucket_read_writer" {
   count = local.create_node_iam_role ? 1 : 0
 
   policy_arn = "arn:aws:iam::aws:policy/${aws_iam_policy.bucket_read_writer[0].name}"
   role       = aws_iam_role.node[0].name
 
   depends_on = [aws_iam_policy.bucket_read_writer, aws_iam_role.node]
+}
+
+# If we create DNS zone, that means we will use dns controller, so we need permissions
+resource "aws_iam_policy" "dns_controller" {
+  count = local.create_node_iam_role && var.create_dns_zone ? 1 : 0
+
+  name   = "AWSCDNSControllerIAMPolicy"
+  policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Effect : "Allow",
+        Action : [
+          "route53:ChangeResourceRecordSets"
+        ],
+        Resource : [
+          "arn:aws:route53:::${aws_route53_zone.this[0].name}/*"
+        ]
+      },
+      {
+        Effect : "Allow",
+        Action : [
+          "route53:ListHostedZones",
+          "route53:ListResourceRecordSets"
+        ],
+        Resource : [
+          "*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dns_controller" {
+  count = local.create_node_iam_role && var.create_dns_zone ? 1 : 0
+
+  policy_arn = "arn:aws:iam::aws:policy/${aws_iam_policy.dns_controller[0].name}"
+  role       = aws_iam_role.node[0].name
+
+  depends_on = [aws_iam_policy.dns_controller, aws_iam_role.node]
 }

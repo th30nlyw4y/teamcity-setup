@@ -149,7 +149,7 @@ variable "database_user" {
 
 # Despite it exists, should never be used. It's better to use Vault or some other k/v secret storage
 variable "database_password" {
-  description = "TeamCity database pasword"
+  description = "TeamCity database password"
   type        = string
   default     = ""
   sensitive   = true

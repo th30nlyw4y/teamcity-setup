@@ -61,6 +61,30 @@ resource "aws_subnet" "public" {
   depends_on = [aws_vpc.this]
 }
 
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.this.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.this.id
+  }
+
+  tags = {
+    Name        = "route-table-${data.aws_region.current.name}-public"
+    Description = "Route table for public subnets in ${data.aws_region.current.name} VPC"
+  }
+
+  depends_on = [aws_vpc.this]
+}
+
+resource "aws_route_table_association" "public" {
+  for_each = aws_subnet.public
+
+  route_table_id = aws_route_table.public.id
+  subnet_id      = each.value.id
+
+  depends_on = [aws_route_table.public, aws_subnet.public]
+}
+
 # Private subnets, which will hold nodes with TeamCity agent pods
 resource "aws_subnet" "private" {
   for_each = local.private_subnets
@@ -77,6 +101,37 @@ resource "aws_subnet" "private" {
   depends_on = [aws_vpc.this]
 }
 
+resource "aws_route_table" "private" {
+  for_each = local.availability_zones
+
+  vpc_id = aws_vpc.this.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.this[each.value].id
+  }
+
+  route {
+    cidr_block      = aws_vpc_endpoint.s3.prefix_list_id
+    vpc_endpoint_id = aws_vpc_endpoint.s3.id
+  }
+
+  tags = {
+    Name        = "route-table-${each.value}-private"
+    Description = "Route table for private subnet in ${each.value} AZ"
+  }
+
+  depends_on = [aws_vpc.this, aws_vpc_endpoint.s3]
+}
+
+resource "aws_route_table_association" "private" {
+  for_each = local.availability_zones
+
+  route_table_id = aws_route_table.private[each.value].id
+  subnet_id      = aws_subnet.private[each.value].id
+
+  depends_on = [aws_route_table.private, aws_subnet.private]
+}
+
 # Required for the Internet access from created VPC
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
@@ -91,39 +146,31 @@ resource "aws_internet_gateway" "this" {
 
 # Required for each NAT gateway
 resource "aws_eip" "nat" {
-  count = length(local.availability_zones)
+  for_each = local.availability_zones
 
   tags = {
-    Name        = "nat-gw-${count.index}-eip"
+    Name        = "nat-gw-${each.value}-eip"
     Description = "IP address for NAT gateway in a public subnet"
   }
-
-  depends_on = [aws_subnet.public]
 }
 
 # Required for outbound connections to the Internet from private subnets
 resource "aws_nat_gateway" "this" {
-  for_each = aws_subnet.public
+  for_each = local.availability_zones
 
-  subnet_id     = each.value.id
-  allocation_id = element(aws_eip.nat[*].id, index(local.availability_zones, each.value.availability_zone))
+  subnet_id     = aws_subnet.public[each.value].id
+  allocation_id = aws_eip.nat[each.value].id
 
   tags = {
-    Name        = "nat-gw-${each.value.availability_zone}"
-    Description = "NAT gateway for private subnetwork in ${each.value.availability_zone} availability zone"
+    Name        = "nat-gw-${each.value}"
+    Description = "NAT gateway for private subnetwork in ${each.value} availability zone"
   }
 
   depends_on = [aws_subnet.public, aws_eip.nat]
 }
 
 # Access to s3
-#resource "aws_route_table" "s3" {
-#  vpc_id = aws_vpc.this.id
-#}
-#
-#resource "aws_vpc_endpoint" "s3" {
-#  service_name      = ""
-#  vpc_id            = aws_vpc.this.id
-#  vpc_endpoint_type = "Gateway"
-#  route_table_ids   = [aws_route_table.s3]
-#}
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = aws_vpc.this.id
+  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
+}
