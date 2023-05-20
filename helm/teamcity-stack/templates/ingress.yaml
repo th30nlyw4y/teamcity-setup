@@ -1,11 +1,11 @@
-{{- with $.Values.teamcity.ingress -}}
+{{- with $.Values.teamcity.server.ingress -}}
 {{- if .enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "tc.name" $ }}-ingress
+  name: {{ include "tc.name" ( dict "ctx" $ ) }}-ingress
   labels:
-    {{- include "tc.metadata.labels" $ | indent 4 }}
+    {{- include "tc.metadata.labels" ( dict "ctx" $ ) | indent 4 }}
   annotations: {{ toYaml .annotations | nindent 4 }}
 spec:
   ingressClassName: {{ default "alb" .class }}
@@ -20,8 +20,8 @@ spec:
           - pathType: Prefix
             backend:
               service:
-                name: {{ include "tc.name" $ }}-svc
+                name: {{ include "tc.name" ( dict "ctx" $ ) }}-svc
                 port:
-                  name: {{ include "tc.name" $ }}-svc-port
+                  name: {{ include "tc.name" ( dict "ctx" $ ) }}-svc-port
 {{- end }}
 {{- end }}

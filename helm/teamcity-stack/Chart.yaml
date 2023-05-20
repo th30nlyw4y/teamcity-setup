@@ -1,5 +1,5 @@
 apiVersion: v2
-name: teamcity-server-stack
+name: teamcity-stack
 description: Chart for setting up TeamCity with several additional components
 version: 0.1.1
 appVersion: 2022.10.3

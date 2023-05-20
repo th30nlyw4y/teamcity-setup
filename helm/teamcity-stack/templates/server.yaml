@@ -1,23 +1,23 @@
-{{- with $.Values.teamcity -}}
+{{- with $.Values.teamcity.server -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "tc.name" $ }}
+  name: {{ include "tc.name" ( dict "ctx" $ ) }}
   labels:
-    {{- include "tc.metadata.labels" $ | indent 4 }}
+    {{- include "tc.metadata.labels" ( dict "ctx" $ ) | indent 4 }}
 spec:
   replicas: {{ default 1 .replicas }} # WARN: increase with care
   selector:
     matchLabels:
-      {{- include "tc.metadata.labels" $ | indent 6 }}
+      {{- include "tc.metadata.labels" ( dict "ctx" $ ) | indent 6 }}
   template:
     metadata:
-      name: {{ include "tc.name" $ }}
+      name: {{ include "tc.name" ( dict "ctx" $ ) }}
       labels:
-        {{- include "tc.metadata.labels" $ | indent 8 }}
+        {{- include "tc.metadata.labels" ( dict "ctx" $ ) | indent 8 }}
     spec:
-      {{- if .image.imagePullSecrets }}
-      imagePullSecrets: {{ toYaml .image.imagePullSecrets | nindent 6 }}
+      {{- if $.Values.teamcity.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml $.Values.teamcity.imagePullSecrets | nindent 6 }}
       {{- end }}
       containers:
         - name: teamcity-server
@@ -35,18 +35,18 @@ spec:
             {{- end }}
           {{- end }}
           ports:
-            - name: {{ include "tc.name" $ }}-port
+            - name: {{ include "tc.name" ( dict "ctx" $ ) }}-port
               containerPort: 8111
           volumeMounts:
             - mountPath: "/storage"
               name: persistent-storage
           resources:
             requests:
-              cpu: {{ default "2" ( .resources.cpu | quote ) }}
-              memory: {{ default "4Gi" ( .resources.memory | quote ) }}
+              cpu: {{ default 2 ( .resources.cpu ) }}
+              memory: {{ default "4Gi" ( .resources.memory ) }}
       volumes:
         - name: persistent-storage
           persistentVolumeClaim:
-            claimName: {{ include "tc.name" $ }}-ssd
+            claimName: {{ include "tc.name" ( dict "ctx" $ ) }}-ssd
       nodeSelector: {{ toYaml .nodeSelector | nindent 8 }}
 {{- end }}

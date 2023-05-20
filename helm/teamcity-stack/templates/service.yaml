@@ -1,16 +1,16 @@
-{{- with $.Values.teamcity.service -}}
+{{- with $.Values.teamcity.server.service -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "tc.name" $ }}-svc
+  name: {{ include "tc.name" ( dict "ctx" $ ) }}-svc
   labels:
-    {{- include "tc.metadata.labels" $ | indent 4 }}
+    {{- include "tc.metadata.labels" ( dict "ctx" $ ) | indent 4 }}
 spec:
   type: ClusterIP
   selector:
-    {{- include "tc.metadata.labels" $ | nindent 4 }}
+    {{- include "tc.metadata.labels" ( dict "ctx" $ ) | nindent 4 }}
   ports:
-    - name: {{ include "tc.name" $ }}-svc-port
+    - name: {{ include "tc.name" ( dict "ctx" $ ) }}-svc-port
       port: {{ default "8111" .port }}
-      targetPort: {{ include "tc.name" $ }}-port
+      targetPort: {{ include "tc.name" ( dict "ctx" $ ) }}-port
 {{- end }}

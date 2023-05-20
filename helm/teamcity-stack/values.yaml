@@ -1,80 +1,114 @@
-.defaultNodeSelector: &defaultNodeSelector
+.serverNodeSelector: &serverNodeSelector
   kubernetes.io/component: server
+
+.agentNodeSelector: &agentNodeSelector
+  kubernetes.io/component: agent
 
 # TeamCity server configuration
 teamcity:
 
-  # You may provide custom name, if needed
+  # Custom release name (default .Chart.Name)
   nameOverride: ""
 
-  # Number of server replicas (Must not be increased in most cases) (default 1)
-  replicas: ""
+  # Secret name(s), which should be used to pull teamcity components images
+  imagePullSecrets: [ ]
 
-  image:
-    # Docker image for TC server (default jetbrains/teamcity-server)
-    name: ""
-    # Docker image tag (default latest)
-    tag: ""
+  server:
 
-    # Secret name(s), which should be used to pull teamcity-server images
-    imagePullSecrets: [ ]
+    # Number of server replicas (Must not be increased in most cases) (default 1)
+    replicas: ""
 
-  # Additional environment variables to pass to tc-server container
-  env: [ ]
+    image:
+      # Docker image for TC server (default jetbrains/teamcity-server)
+      name: ""
+      # Docker image tag (default latest)
+      tag: ""
 
-  # Additional args to pass to tc-server container
-  args: [ ]
+    # Additional environment variables to pass to tc-server container
+    env: [ ]
 
-  resources:
-    # How much CPU resources does server need (default 2)
-    cpu: ""
-    # How much memory resources does server need (default 4Gi)
-    memory: ""
+    # Additional args to pass to tc-server container
+    args: [ ]
 
-  pvc:
-    # Storage provisioner (default kubernetes.io/aws-ebs)
-    provisioner: ""
-    # Persistent disk size (default 50 Gi)
-    size: ""
-    # Provisioned disk type (default gp3)
-    type: ""
+    resources:
+      # How much CPU resources does server need (default 2)
+      cpu: ""
+      # How much memory resources does server need (default 4Gi)
+      memory: ""
 
-  service:
-    # Which port to expose by service (default 8111)
-    port: ""
+    pvc:
+      # Storage provisioner (default kubernetes.io/aws-ebs)
+      provisioner: ""
+      # Persistent disk size (default 50 Gi)
+      size: ""
+      # Provisioned disk type (default gp3)
+      type: ""
 
-  ingress:
-    # Whether to create ingress or not
-    enabled: true
-    # TC server public hostname
-    host: ""                                         # Must be set if enabled
-    # Ingress class name (default alb)
-    class: ""
-    # Name of in-cluster secret, containing TLS cert
-    tlsSecretName: ""                                # Must be set if enabled
-    # Various annotations (https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/)
-    annotations: { }
+    service:
+      # Which port to expose by service (default 8111)
+      port: ""
 
-  nodeSelector:
-    <<: *defaultNodeSelector
+    ingress:
+      # Whether to create ingress or not
+      enabled: true
+      # TC server public hostname
+      host: ""                                         # Must be set if enabled
+      # Ingress class name (default alb)
+      class: ""
+      # Name of in-cluster secret, containing TLS cert
+      tlsSecretName: ""                                # Must be set if enabled
+      # Various annotations (https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/)
+      annotations: { }
+
+    nodeSelector:
+      <<: *serverNodeSelector
+
+  agent:
+
+    image:
+      # Docker image for TC agent (default jetbrains/teamcity-agent)
+      name: ""
+      # Docker image tag (default latest)
+      tag: ""
+
+    # Additional environment variables to pass to tc-agent container
+    env: []
+
+    # Additional args to pass to tc-agent container
+    args: []
+
+    resources:
+      # How much CPU resources does agent need (default 2)
+      cpu: ""
+      # How much memory resources does server need (default 4Gi)
+      memory: ""
+
+    nodeSelector:
+      <<: *agentNodeSelector
+
+    # If we need to use Docker Wrapper or Docker Plugin, we need to use
+    # docker in docker, which required some container tuning. Use with caution
+    # https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/
+    dockerInDocker:
+      enabled: false
 
 # Override default AWS Load Balancer Controller settings if needed
 # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/configurations
 aws-load-balancer-controller:
   clusterName: "tc-eks-cluster"
   nodeSelector:
-    <<: *defaultNodeSelector
+    <<: *serverNodeSelector
 
 # Override default external DNS settings if needed
 # https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md
 external-dns:
   nodeSelector:
     # Use servers node pool for system deployments
-    <<: *defaultNodeSelector
+    <<: *serverNodeSelector
 
 # Override default Karpenter settings
 # https://karpenter.sh/v0.27.3/getting-started/getting-started-with-karpenter/
 karpenter:
   nodeSelector:
     # Use servers node pool for system deployments
-    <<: *defaultNodeSelector
+    <<: *serverNodeSelector

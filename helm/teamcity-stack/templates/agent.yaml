@@ -1,0 +1,53 @@
+{{- with $.Values.teamcity.agent -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tc.name" ( dict "ctx" $ "component" "agent" ) }}
+  labels:
+    {{- include "tc.metadata.labels" ( dict "ctx" $ "component" "agent" ) | indent 4 }}
+spec:
+  # We don't need any pods controlled by this deployment, it will only be used
+  # by TeamCity server as a reference for pod template
+  replicas: 0
+  selector:
+    matchLabels:
+      {{- include "tc.metadata.labels" ( dict "ctx" $ "component" "agent" ) | indent 6 }}
+  template:
+    metadata:
+      name: {{ include "tc.name" ( dict "ctx" $ "component" "agent" ) }}
+      labels:
+        {{- include "tc.metadata.labels" ( dict "ctx" $ "component" "agent" ) | indent 8 }}
+    spec:
+      {{- if $.Values.teamcity.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml $.Values.teamcity.imagePullSecrets | nindent 6 }}
+      {{- end }}
+      containers:
+        - name: teamcity-agent
+          image: "{{ default "jetbrains/teamcity-agent" .image.name }}:{{ .dockerInDocker.enabled | ternary ( printf "%s-linux-sudo" $.Chart.AppVersion ) ( default "latest" .image.tag )}}"
+          {{- if or .env .dockerInDocker.enabled}}
+          env:
+          {{- if .env }}
+            {{- toYaml .env | nindent 12 }}
+          {{- end }}
+          {{- if .dockerInDocker.enabled }}
+            - name: DOCKER_IN_DOCKER
+              value: start
+          {{- end }}
+          {{- end }}
+          {{- if .args }}
+          args:
+            {{- range .args }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- end }}
+          resources:
+            requests:
+              cpu: {{ default 2 ( .resources.cpu ) }}
+              memory: {{ default "4Gi" ( .resources.memory ) }}
+          {{- if .dockerInDocker.enabled }}
+          securityContext:
+            runAsUser: 0
+            privileged: true
+          {{- end }}
+      nodeSelector: {{ toYaml .nodeSelector | nindent 8 }}
+{{- end }}
