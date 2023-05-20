@@ -1,3 +1,6 @@
+.defaultNodeSelector: &defaultNodeSelector
+  kubernetes.io/component: server
+
 # TeamCity server configuration
 teamcity:
 
@@ -7,21 +10,26 @@ teamcity:
   # Number of server replicas (Must not be increased in most cases) (default 1)
   replicas: ""
 
-  resources:
-    # How much CPU resources does server need (default 2)
-    cpu: ""
-    # How much memory resources does server need (default 4Gi)
-    memory: ""
-
   image:
     # Docker image for TC server (default jetbrains/teamcity-server)
     name: ""
     # Docker image tag (default latest)
     tag: ""
 
-    # Secret name, which should be used to pull teamcity-server images
-    imagePullSecrets:
-      - name: ""
+    # Secret name(s), which should be used to pull teamcity-server images
+    imagePullSecrets: [ ]
+
+  # Additional environment variables to pass to tc-server container
+  env: [ ]
+
+  # Additional args to pass to tc-server container
+  args: [ ]
+
+  resources:
+    # How much CPU resources does server need (default 2)
+    cpu: ""
+    # How much memory resources does server need (default 4Gi)
+    memory: ""
 
   pvc:
     # Storage provisioner (default kubernetes.io/aws-ebs)
@@ -39,23 +47,34 @@ teamcity:
     # Whether to create ingress or not
     enabled: true
     # TC server public hostname
-    host: "" # Must be set if enabled
+    host: ""                                         # Must be set if enabled
     # Ingress class name (default alb)
     class: ""
     # Name of in-cluster secret, containing TLS cert
-    tlsSecretName: ""  # Must be set if enabled
+    tlsSecretName: ""                                # Must be set if enabled
     # Various annotations (https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/)
     annotations: { }
+
+  nodeSelector:
+    <<: *defaultNodeSelector
 
 # Override default AWS Load Balancer Controller settings if needed
 # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/configurations
 aws-load-balancer-controller:
   clusterName: "tc-eks-cluster"
+  nodeSelector:
+    <<: *defaultNodeSelector
 
 # Override default external DNS settings if needed
 # https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md
-#external-dns:
+external-dns:
+  nodeSelector:
+    # Use servers node pool for system deployments
+    <<: *defaultNodeSelector
 
 # Override default Karpenter settings
 # https://karpenter.sh/v0.27.3/getting-started/getting-started-with-karpenter/
-#karpenter:
+karpenter:
+  nodeSelector:
+    # Use servers node pool for system deployments
+    <<: *defaultNodeSelector

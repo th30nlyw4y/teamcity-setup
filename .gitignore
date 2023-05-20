@@ -1,3 +1,10 @@
-.terraform.lock.hcl
+# IDEs
 .idea/
+
+# Terraform
+.terraform.lock.hcl
 .terraform/
+
+# Helm
+Chart.lock
+charts/

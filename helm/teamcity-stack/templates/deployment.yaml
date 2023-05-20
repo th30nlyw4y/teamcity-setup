@@ -25,6 +25,15 @@ spec:
           env:
             - name: TEAMCITY_DATA_PATH
               value: "/storage/teamcity_data"
+          {{- if .env }}
+            {{- toYaml .env | nindent 12 }}
+          {{- end }}
+          {{- if .args }}
+          args:
+            {{- range .args }}
+            - {{ . | quote }}
+            {{- end }}
+          {{- end }}
           ports:
             - name: {{ include "tc.name" $ }}-port
               containerPort: 8111
@@ -39,6 +48,5 @@ spec:
         - name: persistent-storage
           persistentVolumeClaim:
             claimName: {{ include "tc.name" $ }}-ssd
-      nodeSelector:
-        kubernetes.io/component: server
+      nodeSelector: {{ toYaml .nodeSelector | nindent 8 }}
 {{- end }}
