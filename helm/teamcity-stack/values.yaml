@@ -32,20 +32,20 @@ teamcity:
     type: ""
 
   service:
-    # Which port to expose by service (default 80)
+    # Which port to expose by service (default 8111)
     port: ""
 
   ingress:
     # Whether to create ingress or not
     enabled: true
     # TC server public hostname
-    host: "example.com" # Must be set if enabled
+    host: "" # Must be set if enabled
     # Ingress class name (default alb)
     class: ""
     # Name of in-cluster secret, containing TLS cert
-    tlsSecretName: "dummySecret"  # Must be set if enabled
+    tlsSecretName: ""  # Must be set if enabled
     # Various annotations (https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/guide/ingress/annotations/)
-    annotations: {}
+    annotations: { }
 
 # Override default AWS Load Balancer Controller settings if needed
 # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.2/deploy/configurations

@@ -11,6 +11,6 @@ spec:
     {{- include "tc.metadata.labels" $ | nindent 4 }}
   ports:
     - name: {{ include "tc.name" $ }}-svc-port
-      port: {{ default "80" .port }}
+      port: {{ default "8111" .port }}
       targetPort: {{ include "tc.name" $ }}-port
 {{- end }}

@@ -27,7 +27,7 @@ spec:
               value: "/storage/teamcity_data"
           ports:
             - name: {{ include "tc.name" $ }}-port
-              containerPort: 80
+              containerPort: 8111
           volumeMounts:
             - mountPath: "/storage"
               name: persistent-storage
