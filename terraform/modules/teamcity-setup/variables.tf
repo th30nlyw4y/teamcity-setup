@@ -117,7 +117,7 @@ variable "node_iam_role_policies" {
 variable "artifacts_bucket_name" {
   description = "Name for bucket, which will be used to store build artifacts from TeamCity agents"
   type        = string
-  default     = "artifacts"
+  default     = "teamcity-artifacts"
 }
 
 # RDS
