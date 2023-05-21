@@ -66,12 +66,9 @@ object KubernetesDefaultCloudProfile : KubernetesCloudProfile({
     terminateIdleMinutes = 30
     // FIXME: Put EKS API server endpoint from Terraform outputs
     apiServerURL = "http://192.168.10.20:8001"
-//    authStrategy = eks {
-//        useInstanceProfile = true
-//        clusterName = "tc-eks-cluster"
-//    }
-    authStrategy = token {
-        token = "credentialsJSON:ad777d4d-b817-416d-8ea7-b94fffe20b44"
+    authStrategy = eks {
+        useInstanceProfile = true
+        clusterName = "tc-eks-cluster"
     }
 })
 
@@ -109,7 +106,6 @@ object DefaultDockerRegistry : DockerRegistryConnection({
     url = "https://docker.io"
     // FIXME: it's actually better to use in-cluster secret with docker credentials
     userName = "th30nlyw4y"
-    // FIXME: change it to generated token
     password = "credentialsJSON:cb0cdea8-ac68-463d-8fe9-945dcea8ea8d"
 })
 
@@ -158,7 +154,6 @@ object GoProjectVcsRoot : GitVcsRoot({
     url = "https://github.com/th30nlyw4y/sample-go-project.git"
     branch = "main"
     branchSpec = "+:main"
-    // FIXME: change it to generated token
     authMethod = password {
         password = "credentialsJSON:5ec475df-9526-4d61-9b38-9f82dc08f2e9"
     }
