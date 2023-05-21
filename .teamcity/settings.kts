@@ -66,10 +66,7 @@ object KubernetesDefaultCloudProfile : KubernetesCloudProfile({
     terminateIdleMinutes = 30
     // FIXME: Put EKS API server endpoint from Terraform outputs
     apiServerURL = "http://192.168.10.20:8001"
-    authStrategy = eks {
-        useInstanceProfile = true
-        clusterName = "tc-eks-cluster"
-    }
+    authStrategy = defaultServiceAccount()
 })
 
 object KubernetesDefaultCloudImage : KubernetesCloudImage({

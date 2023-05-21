@@ -19,6 +19,9 @@ spec:
       {{- if $.Values.teamcity.imagePullSecrets }}
       imagePullSecrets: {{ toYaml $.Values.teamcity.imagePullSecrets | nindent 6 }}
       {{- end }}
+      {{- if .serviceAccount.create }}
+      serviceAccountName: {{ include "tc.name" ( dict "ctx" $ )}}-service-account
+      {{- end }}
       containers:
         - name: teamcity-server
           image: "{{ default "jetbrains/teamcity-server" .image.name }}:{{default "latest" .image.tag }}"

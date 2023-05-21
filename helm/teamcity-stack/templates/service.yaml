@@ -8,7 +8,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    {{- include "tc.metadata.labels" ( dict "ctx" $ ) | nindent 4 }}
+    {{- include "tc.metadata.labels" ( dict "ctx" $ ) | indent 4 }}
   ports:
     - name: {{ include "tc.name" ( dict "ctx" $ ) }}-svc-port
       port: {{ default "8111" .port }}

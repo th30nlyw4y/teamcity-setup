@@ -1,0 +1,17 @@
+{{- if $.Values.teamcity.server.serviceAccount.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "tc.name" ( dict "ctx" $ ) }}-cluster-role-binding
+  labels:
+    {{- include "tc.metadata.labels" ( dict "ctx" $ ) | indent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "tc.name" ( dict "ctx" $ ) }}-service-account
+    namespace: default
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  name:  {{ include "tc.name" ( dict "ctx" $ ) }}-cluster-role
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

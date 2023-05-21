@@ -30,6 +30,11 @@ teamcity:
     # Additional args to pass to tc-server container
     args: [ ]
 
+    serviceAccount:
+      # Required if you use "Default Service Account" authentication strategy
+      # in Cloud Profile
+      create: true
+
     resources:
       # How much CPU resources does server need (default 2)
       cpu: ""

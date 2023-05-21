@@ -1,0 +1,12 @@
+{{- if $.Values.teamcity.server.serviceAccount.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "tc.name" ( dict "ctx" $ ) }}-cluster-role
+  labels:
+    {{- include "tc.metadata.labels" ( dict "ctx" $ ) | indent 4 }}
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "pods" ]
+    verbs: [ "get", "list", "watch", "delete" ]
+{{- end }}
