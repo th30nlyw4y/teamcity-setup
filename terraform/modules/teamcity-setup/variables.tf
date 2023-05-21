@@ -24,7 +24,7 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "TeamCity cluster version"
   type        = string
-  default     = ""
+  default     = "1.26"
 }
 
 variable "enable_vpc_native_networking" {
@@ -76,13 +76,13 @@ variable "agents_capacity_type" {
 variable "server_machine_types" {
   description = "Machine type selection for server node pool"
   type        = list(string)
-  default     = ["ON_DEMAND"]
+  default     = ["c5.xlarge"]
 }
 
 variable "agents_machine_types" {
   description = "Machine type selection for agents node pool"
   type        = list(string)
-  default     = ["ON_DEMAND"]
+  default     = ["c5.xlarge"]
 }
 
 # IAM
@@ -107,7 +107,7 @@ variable "cluster_iam_role_policies" {
 }
 
 variable "node_iam_role_policies" {
-  description = "Additional cluster IAM role policies, that need to be attached"
+  description = "Additional node IAM role policies, that need to be attached"
   type        = list(string)
   default     = []
 }
